@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/chromedp/chromedp"
@@ -9,8 +10,8 @@ import (
 
 /*
  * TODO:
- * - Figure out how to grab the download URL from <img class=".big-gopher">
- * - Figure out how to actually save the image to current directory
+ * - Figure out how to grab the download URL from <img class=".big-gopher"> ✅
+ * - Figure out how to actually save the image to current directory ❌
  */
 
 func main() {
@@ -25,16 +26,25 @@ func main() {
 	defer cancel()
 
 	ctx, cancel := chromedp.NewContext(allocCtx)
+	// ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	downloadURL := "https://storage.googleapis.com/gopherizeme.appspot.com/gophers/3fbbd6ea507241a0e663656182ac58d2b811b5f1.png"
+	var downloadURL string
+	var ok bool
 
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate("https://gopherize.me/"),
 		chromedp.Click("#shuffle-button", chromedp.ByQuery),
 		chromedp.Click("#next-button", chromedp.ByQuery),
-		chromedp.WaitNotPresent(".big-gopher", chromedp.ByQuery),
+		chromedp.AttributeValue(".big-gopher", "src", &downloadURL, &ok, chromedp.ByQuery),
+		// chromedp.WaitNotPresent(".big-gopher", chromedp.ByQuery),
 	); err != nil {
 		log.Fatal(err)
 	}
+
+	if !ok {
+		log.Fatal("Could not scrape img src")
+	}
+
+	fmt.Printf("Download URL: %s\n", downloadURL)
 }
