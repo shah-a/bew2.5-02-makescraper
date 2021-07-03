@@ -34,6 +34,9 @@ func main() {
 	var downloadUrl string
 	var ok bool
 
+	// attempting to use this to block while gopher finishes generating
+	shuffleComplete := make(chan bool)
+
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate("https://gopherize.me/"),
 		chromedp.Click("#shuffle-button", chromedp.ByQuery),
@@ -46,6 +49,10 @@ func main() {
 	if !ok {
 		log.Fatal("Could not scrape img src")
 	}
+
+	// attempting to use this to block while gopher finishes generating
+	close(shuffleComplete)
+	<-shuffleComplete
 
 	// set up a channel so we can block later while we monitor the download progress
 	downloadComplete := make(chan bool)
