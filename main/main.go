@@ -22,7 +22,10 @@ func main() {
 	defer cancel()
 
 	if err := chromedp.Run(ctx,
-		chromedp.Navigate("https://google.ca/"),
+		chromedp.Navigate("https://gopherize.me/"),
+		chromedp.Click("#shuffle-button", chromedp.ByQuery),
+		chromedp.Click("#next-button", chromedp.ByQuery),
+		chromedp.WaitNotPresent(".big-gopher", chromedp.ByQuery),
 	); err != nil {
 		log.Fatal(err)
 	}
