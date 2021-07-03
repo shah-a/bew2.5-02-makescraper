@@ -102,5 +102,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Download Complete! Your gopher was saved as `%s`", downloadDest)
+	fmt.Printf("Download Complete! Your gopher was saved as `%s`\n", downloadDest)
 }
