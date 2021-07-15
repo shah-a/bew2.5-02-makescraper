@@ -3,22 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"time"
 	"io/ioutil"
+	"log"
 	"path/filepath"
+	"time"
 
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 )
 
 func main() {
-	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.Flag("headless", false),
-		// chromedp.Flag("disable-gpu", false),
-		// chromedp.Flag("enable-automation", false),
-		// chromedp.Flag("disable-extensions", false),
-	)
+	opts := append(chromedp.DefaultExecAllocatorOptions[:])
+	// Add this to the `opts` append operation to disable headless mode (i.e. to see what the scraper is doing):
+	// chromedp.Flag("headless", false)
 
 	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	defer cancel()
@@ -34,13 +31,12 @@ func main() {
 	var downloadUrl string
 	var ok bool
 
-	// attempting to use this to block while gopher finishes generating
-	shuffleComplete := make(chan bool)
-
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate("https://gopherize.me/"),
+		chromedp.WaitVisible("#shuffle-button", chromedp.ByQuery),
 		chromedp.Click("#shuffle-button", chromedp.ByQuery),
 		chromedp.Click("#next-button", chromedp.ByQuery),
+		chromedp.WaitVisible(".big-gopher", chromedp.ByQuery),
 		chromedp.AttributeValue(".big-gopher", "src", &downloadUrl, &ok, chromedp.ByQuery),
 	); err != nil {
 		log.Fatal(err)
@@ -49,10 +45,6 @@ func main() {
 	if !ok {
 		log.Fatal("Could not scrape img src")
 	}
-
-	// attempting to use this to block while gopher finishes generating
-	close(shuffleComplete)
-	<-shuffleComplete
 
 	// set up a channel so we can block later while we monitor the download progress
 	downloadComplete := make(chan bool)
