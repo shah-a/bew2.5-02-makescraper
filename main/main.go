@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -12,7 +13,24 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
+// parseFlags checks for `--name` flag
+func parseFlags() (string) {
+	var name string
+	flag.StringVar(&name, "name", "my", "name to parse for gopher's filename")
+	flag.StringVar(&name, "n", "my", "short form of \"name\" flag")
+
+	flag.Parse()
+
+	if name == "" {
+		return "my-gopher.png"
+	}
+
+	return fmt.Sprintf("%s-gopher.png", name)
+}
+
 func main() {
+	filename := parseFlags()
+
 	opts := append(chromedp.DefaultExecAllocatorOptions[:])
 	// Add this to the `opts` append operation to disable headless mode (i.e. to see what the scraper is doing):
 	// chromedp.Flag("headless", false)
@@ -89,7 +107,7 @@ func main() {
 	}
 
 	// write the file to disk - since we hold the bytes we dictate the name and location
-	downloadDest := filepath.Join(".", "my-gopher.png")
+	downloadDest := filepath.Join(".", filename)
 	if err := ioutil.WriteFile(downloadDest, downloadBytes, 0644); err != nil {
 		log.Fatal(err)
 	}
