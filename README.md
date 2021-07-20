@@ -13,6 +13,13 @@ A robot that generates and downloads a shuffled gopher from [gopherize.me](https
 3) `$ go run .`
 4) That's it!
 
+## Benchmark
+
+To benchmark how long it takes to generate a gopher and retrieve its downloadUrl:
+
+1) `$ cd main`
+2) `$ go test -bench=.`
+
 These steps should save a `my-gopher.png` file into the `main` directory
 
 ## Acknowledgements

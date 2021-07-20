@@ -14,7 +14,7 @@ import (
 )
 
 // parseFlags checks for `--name` flag
-func parseFlags() (string) {
+func parseFlags() string {
 	var name string
 	flag.StringVar(&name, "name", "my", "name to parse for gopher's filename")
 	flag.StringVar(&name, "n", "my", "short form of \"name\" flag")
@@ -26,6 +26,28 @@ func parseFlags() (string) {
 	}
 
 	return fmt.Sprintf("%s-gopher.png", name)
+}
+
+func Scrape(ctx context.Context) string {
+	var downloadUrl string
+	var ok bool
+
+	if err := chromedp.Run(ctx,
+		chromedp.Navigate("https://gopherize.me/"),
+		chromedp.WaitVisible("#shuffle-button", chromedp.ByQuery),
+		chromedp.Click("#shuffle-button", chromedp.ByQuery),
+		chromedp.Click("#next-button", chromedp.ByQuery),
+		chromedp.WaitVisible(".big-gopher", chromedp.ByQuery),
+		chromedp.AttributeValue(".big-gopher", "src", &downloadUrl, &ok, chromedp.ByQuery),
+	); err != nil {
+		log.Fatal(err)
+	}
+
+	if !ok {
+		log.Fatal("Could not scrape img src")
+	}
+
+	return downloadUrl
 }
 
 func main() {
@@ -46,23 +68,8 @@ func main() {
 	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	var downloadUrl string
-	var ok bool
-
-	if err := chromedp.Run(ctx,
-		chromedp.Navigate("https://gopherize.me/"),
-		chromedp.WaitVisible("#shuffle-button", chromedp.ByQuery),
-		chromedp.Click("#shuffle-button", chromedp.ByQuery),
-		chromedp.Click("#next-button", chromedp.ByQuery),
-		chromedp.WaitVisible(".big-gopher", chromedp.ByQuery),
-		chromedp.AttributeValue(".big-gopher", "src", &downloadUrl, &ok, chromedp.ByQuery),
-	); err != nil {
-		log.Fatal(err)
-	}
-
-	if !ok {
-		log.Fatal("Could not scrape img src")
-	}
+	// Call scraper function and get resultant downloadUrl
+	downloadUrl := Scrape(ctx)
 
 	// set up a channel so we can block later while we monitor the download progress
 	downloadComplete := make(chan bool)
